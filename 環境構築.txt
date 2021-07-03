@@ -1,0 +1,177 @@
+TypeScript開発環境構築手順
+    1, プロジェクトフォルダを作成 + 移動
+        $mkdir example
+        $cd example
+
+    2, git 初期化
+        $git init
+
+    3, .gitignoreの生成
+        i: $cat > .gitignore
+        ii: 以下をコピペして改行後にCtrl+D
+            """
+# macOS
+### https://raw.github.com/github/gitignore/07c730e1fccfe0f92b29e039ba149d20bfb332e7/Global/macOS.gitignore
+.DS_Store
+.AppleDouble
+.LSOverride
+Icon
+._*
+.DocumentRevisions-V100
+.fseventsd
+.Spotlight-V100
+.TemporaryItems
+.Trashes
+.VolumeIcon.icns
+.com.apple.timemachine.donotpresent
+.AppleDB
+.AppleDesktop
+Network Trash Folder
+Temporary Items
+.apdisk
+
+# Linux
+### https://raw.github.com/github/gitignore/07c730e1fccfe0f92b29e039ba149d20bfb332e7/Global/Linux.gitignore
+*~
+.fuse_hidden*
+.directory
+.Trash-*
+.nfs*
+
+# Windows
+### https://raw.github.com/github/gitignore/07c730e1fccfe0f92b29e039ba149d20bfb332e7/Global/Windows.gitignore
+Thumbs.db
+ehthumbs.db
+ehthumbs_vista.db
+*.stackdump
+[Dd]esktop.ini
+$RECYCLE.BIN/
+*.cab
+*.msi
+*.msm
+*.msp
+*.lnk
+
+# node.js
+### https://raw.github.com/github/gitignore/07c730e1fccfe0f92b29e039ba149d20bfb332e7/Node.gitignore
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pids
+*.pid
+*.seed
+*.pid.lock
+lib-cov
+coverage
+.nyc_output
+.grunt
+bower_components
+.lock-wscript
+build/Release
+node_modules/
+jspm_packages/
+typings/
+.npm
+.eslintcache
+.node_repl_history
+*.tgz
+.yarn-integrity
+.env
+.next
+    """
+
+    4, EditorConfig の設定
+        i: $cat > .editorconfig
+        ii: 以下をコピペして改行後にCtrl+D
+    """
+root = true
+
+[*]
+charset = utf-8
+end_of_line = lf
+insert_final_newline = true
+indent_size = 4
+indent_style = space
+trim_trailing_whitespace = true
+
+[Makefile]
+indent_size = 4
+indent_style = tab
+
+[*.{md,markdown}]
+insert_final_newline = false
+trim_trailing_whitespace = false
+
+[*.json]
+insert_final_newline = false
+    """
+
+    5, package.json の生成
+        i: $npm init -y
+        ii: $vim package.json (開発中はバージョンを"0.1.0"とかにしておく)
+
+    6, EsLintの導入
+        i: $npm install -D eslint
+        ii: $npx eslint --init // 色々質問されるので、プロジェクトに合わせて
+
+    7, webpack, typescriptを同時に導入
+        i: $npm i -D webpack webpack-cli typescript ts-loader
+
+    8, package.json の scriptsに追加
+        "buid": "npx webpack"
+        "watch": "npx webpack -w"
+
+    9, tsconfig.jsonを生成して、以下のようにする
+"""
+{
+  "compilerOptions": {
+    "sourceMap": true,
+    "target": "ES5", // TSはECMAScript 5に変換
+    "module": "ES2015" // TSのモジュールはES Modulesとして出力
+  }
+}
+"""
+
+    10, webpack.config.jsonを生成して、以下のようにする
+"""
+module.exports = {
+  // モード値を production に設定すると最適化された状態で、
+  // development に設定するとソースマップ有効でJSファイルが出力される
+  mode: 'development',
+
+  // メインとなるJavaScriptファイル（エントリーポイント）
+  entry: './src/main.ts',
+
+  module: {
+    rules: [
+      {
+        // 拡張子 .ts の場合
+        test: /\.ts$/,
+        // TypeScript をコンパイルする
+        use: 'ts-loader',
+      },
+    ],
+  },
+  // import 文で .ts ファイルを解決するため
+  // これを定義しないと import 文で拡張子を書く必要が生まれる。
+  // フロントエンドの開発では拡張子を省略することが多いので、
+  // 記載したほうがトラブルに巻き込まれにくい。
+  resolve: {
+    // 拡張子を配列で指定
+    extensions: [
+      '.ts', '.js',
+    ],
+  },
+};
+"""
+
+
+実行例
+1, num run build でコンパイルされるはず
+
+参考URL
+・https://qiita.com/notakaos/items/3bbd2293e2ff286d9f49 // ts-node, ts-node-devの情報はここから確認する
+・https://qiita.com/Mount/items/5f8196b891444575b7db
+・https://ics.media/entry/16329/
