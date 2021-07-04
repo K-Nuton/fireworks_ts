@@ -4,39 +4,50 @@
     <head>
         <meta charset="utf-8">
         <title>template</title>
-        <script defer src="../dist/fireworks.js"></script>
-        <script>
-            window.addEventListener("load", () => {
-                const fireworks = new Fireworks({
-                    width: window.innerWidth,
-                    height: window.innerHeight,
-                    amount: 7
-                });
+        <script src="../dist/fireworks.js"></script>
+        <style>
+            * {
+                margin: 0;
+                padding: 0;
+            }
 
-                let id;
-                window.addEventListener('resize', () => {
-                    id = clearTimeout(id);
+            html {
+                height: 100%;
+            }
 
-                    id = setTimeout(() => {
-                        fireworks.resize(window.innerWidth, window.innerHeight);
-                        fireworks.start();
-                    }, 500);
-                });
-
-                document.body.style.margin = 0;
-                document.body.style.padding = 0;
-                document.body.appendChild(fireworks.dom);
-                fireworks.start();
-
-                setTimeout(() => {
-                    fireworks.amount = 10;
-                    fireworks.start();
-                }, 10000);
-            });
-        </script>
+            body {
+                height: 100%;
+                background-color: black;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+            }
+        </style>
     </head>
 
     <body>
+        <script>
+            const get_rect = () => [
+                Math.min(1240, window.innerWidth),
+                Math.min(400, window.innerHeight)
+            ];
+
+            const fireworks = Fireworks.init();
+            fireworks.amount(5);
+            fireworks.start();
+            document.body.appendChild(fireworks.view);
+
+            const resize = () => fireworks.resize(...get_rect());
+            resize();
+
+            let id;
+            window.addEventListener('resize', () => {
+                clearTimeout(id);
+                id = setTimeout(resize, 100);
+            });
+
+            setTimeout(() => fireworks.amount(20), 10000);
+        </script>
     </body>
 
 </html>

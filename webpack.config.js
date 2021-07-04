@@ -6,8 +6,7 @@ module.exports = {
 
     output: {
         library: "Fireworks",
-        libraryTarget: "window",
-        libraryExport: "default",
+        libraryTarget: "umd",
         filename: "fireworks.js"
     },
 
