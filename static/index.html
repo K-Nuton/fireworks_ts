@@ -4,8 +4,36 @@
     <head>
         <meta charset="utf-8">
         <title>template</title>
-        <!-- <link rel="stylesheet" href=""> -->
         <script defer src="../dist/fireworks.js"></script>
+        <script>
+            window.addEventListener("load", () => {
+                const fireworks = new Fireworks({
+                    width: window.innerWidth,
+                    height: window.innerHeight,
+                    amount: 7
+                });
+
+                let id;
+                window.addEventListener('resize', () => {
+                    id = clearTimeout(id);
+
+                    id = setTimeout(() => {
+                        fireworks.resize(window.innerWidth, window.innerHeight);
+                        fireworks.start();
+                    }, 500);
+                });
+
+                document.body.style.margin = 0;
+                document.body.style.padding = 0;
+                document.body.appendChild(fireworks.dom);
+                fireworks.start();
+
+                setTimeout(() => {
+                    fireworks.amount = 10;
+                    fireworks.start();
+                }, 10000);
+            });
+        </script>
     </head>
 
     <body>
