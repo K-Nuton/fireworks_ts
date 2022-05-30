@@ -4,7 +4,7 @@
     <head>
         <meta charset="utf-8">
         <title>template</title>
-        <script src="../dist/fireworks.js"></script>
+        <script src="../dist/fireworks.min.js"></script>
         <style>
             * {
                 margin: 0;
@@ -33,20 +33,19 @@
             ];
 
             const fireworks = Fireworks.init();
-            fireworks.amount(5);
-            fireworks.start();
             document.body.appendChild(fireworks.view);
 
-            const resize = () => fireworks.resize(...get_rect());
+            const resize = () => requestAnimationFrame(() => fireworks.resize(...get_rect()));
             resize();
+
+            fireworks.amount(7);
+            fireworks.start();
 
             let id;
             window.addEventListener('resize', () => {
                 clearTimeout(id);
                 id = setTimeout(resize, 100);
             });
-
-            setTimeout(() => fireworks.amount(20), 10000);
         </script>
     </body>
 
