@@ -1,5 +1,3 @@
-import { ParticleContainer } from "pixi.js";
-
 import { Station } from "./utils/broadcast";
 import { delayed_cache } from "./utils/helper";
 
@@ -9,15 +7,8 @@ import { on_resize as on_resize_c, canvas, render, on_render } from "./context/c
 import { on_resize as on_resize_i, skeltons, next, amount } from "./ideal/ideal_stage";
 import { load } from "./loader/pixi/loader";
 
-import { PARTICLE_NUM } from "./ideal/composition/ideal_shell";
-import { FIREWOKS_AMOUNT } from "./ideal/ideal_stage";
-
 export const init = delayed_cache(() => {
-    app().stage.addChild(new ParticleContainer(
-        FIREWOKS_AMOUNT * (PARTICLE_NUM * 2 + 1) * 2,
-        { tint: true, scale: true }
-    ))
-    .addChild(...load(skeltons()));
+    app().stage.addChild(...load(skeltons()));
 
     const caster = Symbol();
     const resizer = new Station<[number, number]>(
