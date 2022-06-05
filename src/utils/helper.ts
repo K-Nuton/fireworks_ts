@@ -10,13 +10,9 @@ export const delayed_cache = <T,>(generator: Generator<T>): Generator<T> => {
     return () => cache ?? (cache = generator());
 }
 
-const padd_hex = (len: number) => (num: number) => `${'0'.repeat(len)}${num.toString(16)}`.slice(-len);
-const padd_hex_6 = padd_hex(6);
-const padd_hex_2 = padd_hex(2);
+const mask_xor = (mask: number) => (num: number) => mask ^ (mask & num);
+const xor_r = mask_xor(0xff0000);
+const xor_g = mask_xor(0x00ff00);
+const xor_b = mask_xor(0x0000ff);
 
-const parseInt16 = (hexs: string) => Number.parseInt(hexs, 16);
-
-export const get_reversed_color = (color: number): number => parseInt16([...Array(3)].fill(padd_hex_6(color))
-    .map((h, i) => h.substring(i * 2, (i + 1) * 2))
-    .map(parseInt16)
-    .reduce((pre, cur) => `${pre}${padd_hex_2(255 - cur)}`, ''));
+export const get_reversed_color = (c: number): number => xor_r(c) | xor_g(c) | xor_b(c);
