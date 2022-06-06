@@ -6,7 +6,6 @@ import { Station, Receiver } from "../../utils/broadcast";
 import { Skelton } from "../../ideal/protocol/skelton";
 
 import { app } from "../../context/pixi";
-import { reverse } from "../../context/reverse.filter";
 
 const CIRCLE = delayed_cache(() => app().renderer.generateTexture(
     new Graphics()
@@ -17,6 +16,8 @@ const CIRCLE = delayed_cache(() => app().renderer.generateTexture(
         .drawCircle(0, 0, 300)
         .endFill()
 ));
+
+const MASK = 0xffffff;
 
 const caster = Symbol();
 const handler = new Station<number>(caster);
@@ -45,7 +46,7 @@ export class FireSprite extends Sprite {
 
     private before_animate({ x, y, color, alpha }: Skelton): void {
         this.position.set(x, y);
-        this.tint = reverse(color);
+        this.tint = MASK ^ color;
         this.alpha = alpha;
     }
 
