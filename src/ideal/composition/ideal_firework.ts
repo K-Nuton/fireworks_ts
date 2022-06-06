@@ -16,7 +16,6 @@ export class IdealFirework implements Animator<IdealFirework> {
     private sub_shell: IdealShell;
 
     private update: (delta: number) => void = () => void (0);
-    private id: NodeJS.Timeout;
 
     private is_hidden = true;
 
@@ -31,18 +30,10 @@ export class IdealFirework implements Animator<IdealFirework> {
 
         this.launcher.after_animate.subscribe(this.after_launcher_animate.bind(this));
         this.shell.after_animate.subscribe(this.after_shell_animate.bind(this));
-
-        this.reset();
     }
 
     public reset(): void {
-        clearTimeout(this.id);
-
-        this.id = setTimeout(() => {
-            this.launcher.reset();
-            this.is_hidden && void (this.launcher.alpha = 0);
-            this.update = delta => this.launcher.next(delta);
-        }, get_sleep_time_ms());
+        this.update = this.suspend(get_sleep_time_ms());
     }
 
     public next(delta: number): void {
@@ -57,12 +48,11 @@ export class IdealFirework implements Animator<IdealFirework> {
             this.shell.next(delta);
             this.sub_shell.next(delta);
         };
-
+        
         this.shell.reset();
         this.sub_shell.reset();
 
-        this.is_hidden && void (this.shell.alpha = 0);
-        (this.is_hidden || true_or_false()) && void (this.sub_shell.alpha = 0);
+        true_or_false() && void (this.sub_shell.alpha = 0);
     }
 
     private after_shell_animate(): void {
@@ -75,5 +65,22 @@ export class IdealFirework implements Animator<IdealFirework> {
 
     public show(): void {
         this.is_hidden = false;
+        this.reset();
+    }
+
+    public suspend(sleep_time: number): (delta: number) => void {
+        let elapse = 0;
+        return delta => {
+            if (this.is_hidden) {
+                return;
+            }
+
+            if (sleep_time > (elapse += delta * 1000)) {
+                return;
+            }
+
+            this.launcher.reset();
+            this.update = delta => this.launcher.next(delta);
+        };
     }
 }

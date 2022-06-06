@@ -1,6 +1,6 @@
 {
   "name": "fireworks_ts",
-  "version": "1.1.1",
+  "version": "1.1.2",
   "description": "library which shows fireworks animation.",
   "main": "index.js",
   "scripts": {
