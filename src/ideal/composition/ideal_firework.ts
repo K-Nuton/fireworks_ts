@@ -26,7 +26,7 @@ export class IdealFirework implements Animator<IdealFirework> {
     public constructor(rule: PositionalRule) {
         this.launcher = SkeltonLauncher.emerge(rule);
         this.shell = IdealShell.emerge(rule);
-        this.sub_shell = IdealShell.emerge(rule);
+        this.sub_shell = IdealShell.emerge(rule, 0.7);
 
         this.launcher.after_animate.subscribe(this.after_launcher_animate.bind(this));
         this.shell.after_animate.subscribe(this.after_shell_animate.bind(this));
