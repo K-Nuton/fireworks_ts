@@ -66,7 +66,7 @@ export class IdealShell implements Positional, Animator<IdealShell> {
 
     private constructor(rule: PositionalRule, reduction = 1) {
         this.reduction = reduction;
-        this.s = [...Array(PARTICLE_NUM)].map(() => SkeltonStar.emerge(rule));
+        this.s = [...Array(PARTICLE_NUM)].map(() => SkeltonStar.emerge(rule, reduction));
     }
 
     public get is_dead(): boolean {

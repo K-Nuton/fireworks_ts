@@ -9,8 +9,8 @@ import { Molecule } from "../../molecule/molecule";
 const get_life = (): number => 2.5 * (rand_range(93, 101) / 100);
 
 export class SkeltonStar extends Molecule implements Skelton {
-    public static emerge(rule: PositionalRule): SkeltonStar {
-        return new SkeltonStar(rule);
+    public static emerge(rule: PositionalRule, scale = 1): SkeltonStar {
+        return new SkeltonStar(rule, scale);
     }
 
     private life = get_life();
@@ -62,8 +62,11 @@ export class SkeltonStar extends Molecule implements Skelton {
         return this.after[OBSERVER];
     }
 
-    private constructor(rule: PositionalRule) {
+    public readonly scale: number;
+
+    private constructor(rule: PositionalRule, scale = 1) {
         super(rule);
+        this.scale = scale;
     }
 
     public next(delta: number): void {
