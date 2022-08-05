@@ -1,12 +1,11 @@
 import { rand_range } from "../../utils/helper";
 
-import { Station } from "../../utils/broadcast";
+import { transmitter, Observer, OBSERVER, HANDLER } from "../../utils/transmitter";
 import { PositionalRule } from "../../positional_rule/protocol/positional_rule";
 import { Skelton } from "../protocol/skelton";
 
 import { Molecule } from "../../molecule/molecule";
 
-const caster = Symbol();
 const get_life = (): number => 2.5 * (rand_range(93, 101) / 100);
 
 export class SkeltonStar extends Molecule implements Skelton {
@@ -48,19 +47,19 @@ export class SkeltonStar extends Molecule implements Skelton {
         return this.elapse > this.life;
     }
 
-    private before = new Station<SkeltonStar>(caster)
-    public get before_animate(): Station<SkeltonStar> {
-        return this.before;
+    private readonly before = transmitter<SkeltonStar>();
+    public get before_animate(): Observer<SkeltonStar> {
+        return this.before[OBSERVER];
     }
 
-    private update = new Station<SkeltonStar>(caster);
-    public get on_next_frame(): Station<SkeltonStar> {
-        return this.update;
+    private readonly update = transmitter<SkeltonStar>();
+    public get on_next_frame(): Observer<SkeltonStar> {
+        return this.update[OBSERVER];
     }
 
-    private after = new Station<SkeltonStar>(caster);
-    public get after_animate(): Station<SkeltonStar> {
-        return this.after;
+    private readonly after = transmitter<SkeltonStar>();
+    public get after_animate(): Observer<SkeltonStar> {
+        return this.after[OBSERVER];
     }
 
     private constructor(rule: PositionalRule) {
@@ -74,17 +73,17 @@ export class SkeltonStar extends Molecule implements Skelton {
 
         if (this.is_dead) {
             this.a = 0;
-            this.after.broadcast(this).by(caster);
+            this.after[HANDLER].transmit(this);
             return;
         }
 
-        this.update.broadcast(this).by(caster);
+        this.update[HANDLER].transmit(this);
     }
 
     public reset(): void {
         super.reset();
         this.a = 1;
         this.life = get_life();
-        this.before.broadcast(this).by(caster);
+        this.before[HANDLER].transmit(this);
     }
 }

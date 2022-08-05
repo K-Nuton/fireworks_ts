@@ -1,5 +1,5 @@
 import { rand_range, random_color } from "../../utils/helper";
-import { Station, Receiver } from "../../utils/broadcast";
+import { transmitter, Observer, Receiver, OBSERVER, HANDLER } from "../../utils/transmitter";
 
 import { Positional } from "../../positional/protocol/positional";
 import { PositionalRule } from "../../positional_rule/protocol/positional_rule";
@@ -19,8 +19,6 @@ const PI_HALF = Math.PI / 2;
 let shorter = 0;
 export const on_resized: Receiver<[number, number]> = ([w, h]): void => void (shorter = Math.min(w, h));
 const get_velocity = (): number => shorter * (8 / 10) * (rand_range(70, 111) / 100);
-
-const caster = Symbol();
 
 export class IdealShell implements Positional, Animator<IdealShell> {
     public static emerge(rule: PositionalRule, reduction = 1): IdealShell {
@@ -54,14 +52,14 @@ export class IdealShell implements Positional, Animator<IdealShell> {
         this.c = center;
     }
 
-    private before = new Station<IdealShell>(caster);
-    public get before_animate(): Station<IdealShell> {
-        return this.before;
+    private readonly before = transmitter<IdealShell>();
+    public get before_animate(): Observer<IdealShell> {
+        return this.before[OBSERVER];
     }
 
-    private after = new Station<IdealShell>(caster);
-    public get after_animate(): Station<IdealShell> {
-        return this.after;
+    private readonly after = transmitter<IdealShell>();
+    public get after_animate(): Observer<IdealShell> {
+        return this.after[OBSERVER];
     }
 
     private reduction: number;
@@ -103,14 +101,14 @@ export class IdealShell implements Positional, Animator<IdealShell> {
         }
 
         this.s.forEach(star => star.reset());
-        this.before.broadcast(this).by(caster);
+        this.before[HANDLER].transmit(this);
     }
 
     public next(delta: number): void {
         this.s.forEach(star => star.next(delta));
 
         if (this.is_dead) {
-            this.after.broadcast(this).by(caster);
+            this.after[HANDLER].transmit(this);
         }
     }
 }

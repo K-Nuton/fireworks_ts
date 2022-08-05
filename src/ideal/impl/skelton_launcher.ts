@@ -1,5 +1,5 @@
 import { rand_range } from "../../utils/helper";
-import { Station, Receiver } from "../../utils/broadcast";
+import { transmitter, Observer, Receiver, OBSERVER, HANDLER } from "../../utils/transmitter";
 
 import { Positional } from "../../positional/protocol/positional";
 import { PositionalRule } from "../../positional_rule/protocol/positional_rule";
@@ -18,8 +18,6 @@ export const on_resized: Receiver<[number, number]> = (rect): void => void ([w, 
 
 const get_position = (): Positional => Point.of(w * (rand_range(100, 900) / 1000), h, 0);
 const get_direction = (): Positional => Vec3.decompose(PI_HALF, -PI_HALF, h * (rand_range(100, 200) / 100) * (6 / 10));
-
-const caster = Symbol();
 
 export class SkeltonLauncher extends Molecule implements Skelton {
     public static emerge(rule: PositionalRule): SkeltonLauncher {
@@ -44,19 +42,19 @@ export class SkeltonLauncher extends Molecule implements Skelton {
         }
     }
 
-    private before = new Station<SkeltonLauncher>(caster);
-    public get before_animate(): Station<SkeltonLauncher> {
-        return this.before;
+    private readonly before = transmitter<SkeltonLauncher>();
+    public get before_animate(): Observer<SkeltonLauncher> {
+        return this.before[OBSERVER];
     }
 
-    private update = new Station<SkeltonLauncher>(caster);
-    public get on_next_frame(): Station<SkeltonLauncher> {
-        return this.update;
+    private readonly update = transmitter<SkeltonLauncher>();
+    public get on_next_frame(): Observer<SkeltonLauncher> {
+        return this.update[OBSERVER];
     }
 
-    private after = new Station<SkeltonLauncher>(caster);
-    public get after_animate(): Station<SkeltonLauncher> {
-        return this.after;
+    private readonly after = transmitter<SkeltonLauncher>();
+    public get after_animate(): Observer<SkeltonLauncher> {
+        return this.after[OBSERVER];
     }
 
     private constructor(rule: PositionalRule) {
@@ -69,11 +67,11 @@ export class SkeltonLauncher extends Molecule implements Skelton {
 
         if (last_y < this.y) {
             this.a = 0;
-            this.after.broadcast(this).by(caster);
+            this.after[HANDLER].transmit(this);
             return;
         }
 
-        this.update.broadcast(this).by(caster);
+        this.update[HANDLER].transmit(this);
     }
 
     public reset(): void {
@@ -81,6 +79,6 @@ export class SkeltonLauncher extends Molecule implements Skelton {
         this.a = 1;
         this.initial_position = get_position();
         this.direction = get_direction();
-        this.before.broadcast(this).by(caster);
+        this.before[HANDLER].transmit(this);
     }
 }

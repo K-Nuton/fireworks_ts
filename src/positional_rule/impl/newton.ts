@@ -1,4 +1,4 @@
-import { Receiver } from "../../utils/broadcast";
+import { Receiver } from "../../utils/transmitter";
 import { PositionalRule, Rule } from "../protocol/positional_rule";
 
 let g = 1, r = 1, c = 1;
