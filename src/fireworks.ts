@@ -4,10 +4,10 @@ import { transmitter } from "./utils/transmitter";
 import { delayed_cache } from "./utils/helper";
 
 import { on_resize as on_resize_p, app } from "./context/pixi";
-import { on_resize as on_resize_s } from "./loader/pixi/firesprite";
+import { on_resize as on_resize_s } from "./loader/firesprite";
 import { on_resize as on_resize_c, canvas, render, on_render } from "./context/canvas";
 import { on_resize as on_resize_i, skeltons, next, amount } from "./ideal/ideal_stage";
-import { load } from "./loader/pixi/loader";
+import { to_sprite } from "./loader/firesprite";
 
 import { reverse_color_filter } from "./context/reverse.filter";
 
@@ -22,7 +22,7 @@ export const init = delayed_cache(() => {
     app().stage.addChild(new ParticleContainer(
         FIREWOKS_AMOUNT * (PARTICLE_NUM + 1) * 2,
         { tint: true, scale: true }
-    )).addChild(...load(skeltons()));
+    )).addChild(...skeltons().map(to_sprite));
 
     const [resizer, rect_observer] = transmitter<[number, number]>();
     rect_observer.subscribe(on_resize_c, on_resize_i, on_resize_p, on_resize_s);
