@@ -1,4 +1,4 @@
-import { Receiver } from "../utils/broadcast";
+import { Receiver } from "../utils/transmitter";
 import { delayed_cache } from "../utils/helper";
 
 const BLACK = 'rgba(0, 0, 0, 1)';

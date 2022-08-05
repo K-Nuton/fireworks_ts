@@ -1,6 +1,6 @@
 import { ParticleContainer } from "pixi.js";
 
-import { Station } from "./utils/broadcast";
+import { transmitter } from "./utils/transmitter";
 import { delayed_cache } from "./utils/helper";
 
 import { on_resize as on_resize_p, app } from "./context/pixi";
@@ -24,9 +24,8 @@ export const init = delayed_cache(() => {
         { tint: true, scale: true }
     )).addChild(...load(skeltons()));
 
-    const caster = Symbol();
-    const resizer = new Station<[number, number]>(caster);
-    resizer.subscribe(on_resize_c, on_resize_i, on_resize_p, on_resize_s);
+    const [resizer, rect_observer] = transmitter<[number, number]>();
+    rect_observer.subscribe(on_resize_c, on_resize_i, on_resize_p, on_resize_s);
 
     on_render(delta => void (next(delta)) ?? app().view);
     app().ticker.add(scale => render((scale * app().ticker.deltaMS) / 1000));
@@ -36,7 +35,7 @@ export const init = delayed_cache(() => {
         start: () => app().ticker.start(),
         stop: () => app().ticker.stop(),
         amount,
-        resize: (w: number, h: number) => resizer.broadcast([w, h]).by(caster),
+        resize: (w: number, h: number) => resizer.transmit([w, h]),
         view: canvas()
     } as const;
 });

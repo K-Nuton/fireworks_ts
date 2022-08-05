@@ -1,7 +1,7 @@
 import { Graphics, Sprite } from "pixi.js";
 
 import { delayed_cache } from "../../utils/helper";
-import { Station, Receiver } from "../../utils/broadcast";
+import { transmitter, Receiver } from "../../utils/transmitter";
 
 import { Skelton } from "../../ideal/protocol/skelton";
 
@@ -19,11 +19,10 @@ const CIRCLE = delayed_cache(() => app().renderer.generateTexture(
 
 const MASK = 0xffffff;
 
-const caster = Symbol();
-const handler = new Station<number>(caster);
-export const on_resize: Receiver<[number, number]> = ([w, h]): void => handler.broadcast(
+const [handler, observer] = transmitter<number>();
+export const on_resize: Receiver<[number, number]> = ([w, h]): void => handler.transmit(
     Math.max(2, Math.min(5, Math.min(w, h) / 100)) / CIRCLE().width
-).by(caster);
+);
 
 export class FireSprite extends Sprite {
     public static fromSkelton(core: Skelton): FireSprite {
@@ -40,7 +39,7 @@ export class FireSprite extends Sprite {
         core.on_next_frame.subscribe(this.on_next_frame.bind(this));
         core.after_animate.subscribe(this.after_animate.bind(this));
 
-        handler.subscribe(this.scale.set.bind(this.scale));
+        observer.subscribe(this.scale.set.bind(this.scale));
         this.scale.set(2 / CIRCLE().width);
     }
 
