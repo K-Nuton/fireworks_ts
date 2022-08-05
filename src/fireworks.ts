@@ -15,7 +15,7 @@ import { FIREWOKS_AMOUNT } from "./ideal/ideal_stage";
 import { PARTICLE_NUM } from "./ideal/composition/ideal_shell";
 
 export const init = delayed_cache(() => {
-    console.log('Fireworks.js ver.1.1.3');
+    console.log('Fireworks.js ver.1.1.4');
 
     app().stage.filters = [reverse_color_filter()];
 
