@@ -20,7 +20,7 @@ const ctx = delayed_cache(() => {
 export const canvas = (): HTMLCanvasElement => ctx().canvas;
 
 let get_frame: (delta: number) => HTMLCanvasElement;
-export const on_render = (on_render: (delta: number) => HTMLCanvasElement): void => void (get_frame = on_render);
+export const on_render = (on_render: (delta: number) => HTMLCanvasElement): unknown => get_frame = on_render;
 
 export const render = (delta: number): void => {
     ctx().fillRect(0, 0, canvas().width, canvas().height);
@@ -32,4 +32,4 @@ export const on_resize: Receiver<[number, number]> = ([w, h]): void => {
     ctx().fillStyle = BLACK;
     ctx().fillRect(0, 0, w, h);
     ctx().fillStyle = RESIDUAL;
-}
+};

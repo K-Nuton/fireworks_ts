@@ -1,5 +1,5 @@
 import { rand_range, random_color } from "../../utils/helper";
-import { transmitter, Observer, Receiver, OBSERVER, HANDLER } from "../../utils/transmitter";
+import { create_transmitter, Observer, Receiver, StateHandler } from "../../utils/transmitter";
 
 import { Positional } from "../../positional/protocol/positional";
 import { PositionalRule } from "../../positional_rule/protocol/positional_rule";
@@ -17,64 +17,43 @@ const GOLDEN_SPIRAL = Math.PI * (1 + Math.sqrt(5));
 const PI_HALF = Math.PI / 2;
 
 let shorter = 0;
-export const on_resized: Receiver<[number, number]> = ([w, h]): void => void (shorter = Math.min(w, h));
-const get_velocity = (): number => shorter * (8 / 10) * (rand_range(70, 111) / 100);
+export const on_resized: Receiver<[number, number]> = ([w, h]) => shorter = Math.min(w, h);
+const random_velovity = () => shorter * 0.8 * (rand_range(70, 111) / 100);
 
 export class IdealShell implements Positional, Animator<IdealShell> {
-    public static emerge(rule: PositionalRule, reduction = 1): IdealShell {
+    static emerge(rule: PositionalRule, reduction = 1): IdealShell {
         return new IdealShell(rule, reduction);
     }
 
-    private s: SkeltonStar[];
-    public get stars(): SkeltonStar[] {
-        return this.s;
-    }
+    readonly stars: SkeltonStar[];
 
-    private c = Point.ZERO;
+    center = Point.ZERO;
 
-    public get x(): number {
-        return this.c.x;
-    }
+    get x(): number { return this.center.x; }
+    get y(): number { return this.center.y; }
+    get z(): number { return this.center.z; }
 
-    public get y(): number {
-        return this.c.y;
-    }
+    get is_dead(): boolean { return this.stars.every(s => s.is_dead); }
+    set alpha(alpha: number) { this.stars.forEach(s => s.alpha = alpha); }
 
-    public get z(): number {
-        return this.c.z;
-    }
+    private readonly preparation: StateHandler<IdealShell>;
+    readonly before_animate: Observer<IdealShell>;
 
-    public set alpha(alpha: number) {
-        this.stars.forEach(s => s.alpha = alpha);
-    }
+    private readonly death: StateHandler<IdealShell>;
+    readonly after_animate: Observer<IdealShell>;
 
-    public set center(center: Positional) {
-        this.c = center;
-    }
-
-    private readonly before = transmitter<IdealShell>();
-    public get before_animate(): Observer<IdealShell> {
-        return this.before[OBSERVER];
-    }
-
-    private readonly after = transmitter<IdealShell>();
-    public get after_animate(): Observer<IdealShell> {
-        return this.after[OBSERVER];
-    }
-
-    private reduction: number;
+    private readonly reduction: number;
 
     private constructor(rule: PositionalRule, reduction = 1) {
         this.reduction = reduction;
-        this.s = [...Array(PARTICLE_NUM)].map(() => SkeltonStar.emerge(rule, reduction));
+        this.stars = [...Array(PARTICLE_NUM)].map(() => SkeltonStar.emerge(rule, reduction));
+
+        [this.preparation, this.before_animate] = create_transmitter<IdealShell>();
+        [this.death, this.after_animate] = create_transmitter<IdealShell>();
     }
 
-    public get is_dead(): boolean {
-        return this.s.every(s => s.is_dead);
-    }
-
-    public reset(): void {
-        const radius = get_velocity() * this.reduction;
+    reset(): void {
+        const radius = random_velovity() * this.reduction;
         const color = random_color();
 
         let i = 0, t = Math.random(), r = 0;
@@ -92,7 +71,7 @@ export class IdealShell implements Positional, Animator<IdealShell> {
             phi = GOLDEN_SPIRAL * t;
             t += r;
 
-            star = this.s[i];
+            star = this.stars[i];
             star.initial_position = this;
             star.direction = Vec3.decompose(theta, phi, radius);
             star.color = color;
@@ -100,15 +79,15 @@ export class IdealShell implements Positional, Animator<IdealShell> {
             i++;
         }
 
-        this.s.forEach(star => star.reset());
-        this.before[HANDLER].transmit(this);
+        this.stars.forEach(star => star.reset());
+        this.preparation.transmit(this);
     }
 
-    public next(delta: number): void {
-        this.s.forEach(star => star.next(delta));
+    next(delta: number): void {
+        this.stars.forEach(star => star.next(delta));
 
         if (this.is_dead) {
-            this.after[HANDLER].transmit(this);
+            this.death.transmit(this);
         }
     }
 }
