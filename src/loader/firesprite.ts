@@ -1,7 +1,7 @@
 import { Graphics, Sprite } from "pixi.js";
 
 import { delayed_cache } from "../utils/helper";
-import { transmitter, Receiver } from "../utils/transmitter";
+import { create_transmitter, Receiver } from "../utils/transmitter";
 
 import { Skelton } from "../ideal/protocol/skelton";
 
@@ -19,17 +19,12 @@ const CIRCLE = delayed_cache(() => app().renderer.generateTexture(
 
 const MASK = 0xffffff;
 
-const [handler, observer] = transmitter<number>();
-export const on_resize: Receiver<[number, number]> = ([w, h]): void => handler.transmit(
+const [scaler, observer] = create_transmitter<number>();
+export const on_resize: Receiver<[number, number]> = ([w, h]) => scaler.transmit(
     Math.max(2, Math.min(5, Math.min(w, h) / 100)) / CIRCLE().width
 );
 
-export function to_sprite({
-    before_animate,
-    on_next_frame,
-    after_animate,
-    scale
-}: Skelton): Sprite {
+export function to_sprite({ before_animate, on_next_frame, after_animate, scale = 1 }: Skelton): Sprite {
     const sprite = Sprite.from(CIRCLE());
 
     sprite.anchor.set(0.5);
@@ -41,17 +36,10 @@ export function to_sprite({
         sprite.alpha = alpha;
     });
 
-    on_next_frame.subscribe(({ x, y, alpha }: Skelton) => {
-        if (sprite.alpha !== alpha) {
-            sprite.alpha = alpha;
-        }
-
-        sprite.position.set(x, y);
-    });
-
+    on_next_frame.subscribe(({ x, y }: Skelton) => sprite.position.set(x, y));
     after_animate.subscribe(({ alpha }: Skelton) => sprite.alpha = alpha);
 
-    observer.subscribe(base_scale => sprite.scale.set(base_scale * (scale ?? 1)));
+    observer.subscribe(base_scale => sprite.scale.set(base_scale * scale));
     sprite.scale.set(2 / CIRCLE().width);
 
     return sprite;

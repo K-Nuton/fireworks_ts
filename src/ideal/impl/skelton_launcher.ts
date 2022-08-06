@@ -1,7 +1,6 @@
 import { rand_range } from "../../utils/helper";
-import { transmitter, Observer, Receiver, OBSERVER, HANDLER } from "../../utils/transmitter";
+import { create_transmitter, Observer, Receiver, StateHandler } from "../../utils/transmitter";
 
-import { Positional } from "../../positional/protocol/positional";
 import { PositionalRule } from "../../positional_rule/protocol/positional_rule";
 
 import { Point } from "../../positional/basic_impl/point";
@@ -14,71 +13,59 @@ import { Molecule } from "../../molecule/molecule";
 const PI_HALF = Math.PI / 2;
 
 let [w, h] = [0, 0];
-export const on_resized: Receiver<[number, number]> = (rect): void => void ([w, h] = rect);
+export const on_resized: Receiver<[number, number]> = rect => [w, h] = rect;
 
-const get_position = (): Positional => Point.of(w * (rand_range(100, 900) / 1000), h, 0);
-const get_direction = (): Positional => Vec3.decompose(PI_HALF, -PI_HALF, h * (rand_range(100, 200) / 100) * (6 / 10));
+const random_position = () => Point.of(w * (rand_range(100, 900) / 1000), h, 0);
+const random_direction = () => Vec3.decompose(PI_HALF, -PI_HALF, h * (rand_range(100, 200) / 100) * 0.8);
 
 export class SkeltonLauncher extends Molecule implements Skelton {
-    public static emerge(rule: PositionalRule): SkeltonLauncher {
+    static emerge(rule: PositionalRule): SkeltonLauncher {
         return new SkeltonLauncher(rule);
     }
 
-    public get color(): number {
-        return 0xffffff;
-    }
+    readonly color = 0xffffff;
 
-    private a = 0;
-    public get alpha(): number {
-        return this.a;
-    }
-    public set alpha(alpha: number) {
-        if (alpha < 0) {
-            this.a = 0;
-        } else if (alpha > 1) {
-            this.a = 1;
-        } else {
-            this.a = alpha;
-        }
-    }
+    private _alpha = 0;
+    get alpha(): number { return this._alpha; }
+    set alpha(alpha: number) { this._alpha = alpha < 0 ? 0 : alpha > 1 ? 1 : alpha; }
 
-    private readonly before = transmitter<SkeltonLauncher>();
-    public get before_animate(): Observer<SkeltonLauncher> {
-        return this.before[OBSERVER];
-    }
+    private readonly preparation: StateHandler<SkeltonLauncher>;
+    readonly before_animate: Observer<SkeltonLauncher>;
 
-    private readonly update = transmitter<SkeltonLauncher>();
-    public get on_next_frame(): Observer<SkeltonLauncher> {
-        return this.update[OBSERVER];
-    }
+    private readonly update: StateHandler<SkeltonLauncher>;
+    readonly on_next_frame: Observer<SkeltonLauncher>;
 
-    private readonly after = transmitter<SkeltonLauncher>();
-    public get after_animate(): Observer<SkeltonLauncher> {
-        return this.after[OBSERVER];
-    }
+    private readonly death: StateHandler<SkeltonLauncher>;
+    readonly after_animate: Observer<SkeltonLauncher>;
 
     private constructor(rule: PositionalRule) {
         super(rule);
+
+        [this.preparation, this.before_animate] = create_transmitter<SkeltonLauncher>();
+        [this.update, this.on_next_frame] = create_transmitter<SkeltonLauncher>();
+        [this.death, this.after_animate] = create_transmitter<SkeltonLauncher>();
     }
 
-    public next(delta: number): void {
+    next(delta: number): void {
         const last_y = this.y;
         super.next(delta);
 
         if (last_y < this.y) {
-            this.a = 0;
-            this.after[HANDLER].transmit(this);
+            this._alpha = 0;
+            this.death.transmit(this);
             return;
         }
 
-        this.update[HANDLER].transmit(this);
+        this.update.transmit(this);
     }
 
-    public reset(): void {
+    reset(): void {
         super.reset();
-        this.a = 1;
-        this.initial_position = get_position();
-        this.direction = get_direction();
-        this.before[HANDLER].transmit(this);
+
+        this._alpha = 1;
+        this.initial_position = random_position();
+        this.direction = random_direction();
+
+        this.preparation.transmit(this);
     }
 }

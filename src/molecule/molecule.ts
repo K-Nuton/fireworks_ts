@@ -6,45 +6,30 @@ import { Point } from "../positional/basic_impl/point";
 import { Vec3 } from "../positional/basic_impl/vec3";
 
 export class Molecule implements Positional, Animator<Molecule>{
-    private rule: PositionalRule;
+    private readonly rule: PositionalRule;
 
     private t = 0;
     private p = Point.ZERO;
     private v = Vec3.BASIS;
 
-    public get elapse(): number {
-        return this.t;
-    }
+    get elapse(): number { return this.t; }
 
-    public set initial_position(position: Positional) {
-        this.p = position;
-    }
+    set initial_position(position: Positional) { this.p = position; }
+    set direction(direction: Positional) { this.v = direction; }
 
-    public set direction(direction: Positional) {
-        this.v = direction;
-    }
+    get x(): number { return this.p.x + this.rule.x(this.v, this.t); }
+    get y(): number { return this.p.y + this.rule.y(this.v, this.t); }
+    get z(): number { return this.p.z + this.rule.z(this.v, this.t); }
 
-    public get x(): number {
-        return this.p.x + this.rule.x(this.v, this.t);
-    }
-
-    public get y(): number {
-        return this.p.y + this.rule.y(this.v, this.t);
-    }
-
-    public get z(): number {
-        return this.p.z + this.rule.z(this.v, this.t);
-    }
-
-    public constructor(rule: PositionalRule) {
+    constructor(rule: PositionalRule) {
         this.rule = rule;
     }
 
-    public reset(): void {
+    reset(): void {
         this.t = 0;
     }
 
-    public next(delta: number): void {
+    next(delta: number): void {
         this.t += delta;
     }
 }

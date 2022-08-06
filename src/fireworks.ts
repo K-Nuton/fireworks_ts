@@ -1,12 +1,12 @@
 import { ParticleContainer } from "pixi.js";
 
-import { transmitter } from "./utils/transmitter";
+import { create_transmitter } from "./utils/transmitter";
 import { delayed_cache } from "./utils/helper";
 
-import { on_resize as on_resize_p, app } from "./context/pixi";
-import { on_resize as on_resize_s } from "./loader/firesprite";
-import { on_resize as on_resize_c, canvas, render, on_render } from "./context/canvas";
-import { on_resize as on_resize_i, skeltons, next, amount } from "./ideal/ideal_stage";
+import { on_resize as reset_pixi_ctx, app } from "./context/pixi";
+import { on_resize as resize_sprite } from "./loader/firesprite";
+import { on_resize as reset_canvas_ctx, canvas, render, on_render } from "./context/canvas";
+import { on_resize as resize_ideal, skeltons, next, amount } from "./ideal/ideal_stage";
 import { to_sprite } from "./loader/firesprite";
 
 import { reverse_color_filter } from "./context/reverse.filter";
@@ -24,8 +24,8 @@ export const init = delayed_cache(() => {
         { tint: true, scale: true }
     )).addChild(...skeltons().map(to_sprite));
 
-    const [resizer, rect_observer] = transmitter<[number, number]>();
-    rect_observer.subscribe(on_resize_c, on_resize_i, on_resize_p, on_resize_s);
+    const [resizer, observer] = create_transmitter<[number, number]>();
+    observer.subscribe(reset_canvas_ctx, reset_pixi_ctx, resize_ideal, resize_sprite);
 
     on_render(delta => void (next(delta)) ?? app().view);
     app().ticker.add(scale => render((scale * app().ticker.deltaMS) / 1000));
