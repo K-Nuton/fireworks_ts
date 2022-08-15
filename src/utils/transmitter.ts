@@ -6,12 +6,12 @@ export type Observer<T> = {
     unsbscribe(...receivers: Receiver<T>[]): void;
 };
 
-export type StateHandler<T> = {
+export type Emitter<T> = {
     transmit(state: T): void;
     clear(): void;
 };
 
-export function create_transmitter<T>(): [StateHandler<T>, Observer<T>] {
+export function create_transmitter<T>(): [Emitter<T>, Observer<T>] {
     const { subscribe, unsbscribe, transmit, clear } = new Transmitter<T>();
 
     return [{ transmit, clear } as const, { subscribe, unsbscribe } as const];

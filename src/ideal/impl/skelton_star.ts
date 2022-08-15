@@ -1,6 +1,6 @@
 import { rand_range } from "../../utils/helper";
 
-import { create_transmitter, Observer, StateHandler } from "../../utils/transmitter";
+import { create_transmitter, Observer, Emitter } from "../../utils/transmitter";
 import { PositionalRule } from "../../positional_rule/protocol/positional_rule";
 import { Skelton } from "../protocol/skelton";
 
@@ -28,13 +28,13 @@ export class SkeltonStar extends Molecule implements Skelton {
 
     get is_dead(): boolean { return this.elapse > this.life; }
 
-    private readonly preparation: StateHandler<SkeltonStar>;
+    private readonly preparation: Emitter<SkeltonStar>;
     readonly before_animate: Observer<SkeltonStar>;
 
-    private readonly update: StateHandler<SkeltonStar>;
+    private readonly update: Emitter<SkeltonStar>;
     readonly on_next_frame: Observer<SkeltonStar>;
 
-    private readonly death: StateHandler<SkeltonStar>;
+    private readonly death: Emitter<SkeltonStar>;
     readonly after_animate: Observer<SkeltonStar>;
 
     readonly scale: number;

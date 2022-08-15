@@ -1,5 +1,5 @@
 import { rand_range, random_color } from "../../utils/helper";
-import { create_transmitter, Observer, Receiver, StateHandler } from "../../utils/transmitter";
+import { create_transmitter, Observer, Receiver, Emitter } from "../../utils/transmitter";
 
 import { Positional } from "../../positional/protocol/positional";
 import { PositionalRule } from "../../positional_rule/protocol/positional_rule";
@@ -36,10 +36,10 @@ export class IdealShell implements Positional, Animator<IdealShell> {
     get is_dead(): boolean { return this.stars.every(s => s.is_dead); }
     set alpha(alpha: number) { this.stars.forEach(s => s.alpha = alpha); }
 
-    private readonly preparation: StateHandler<IdealShell>;
+    private readonly preparation: Emitter<IdealShell>;
     readonly before_animate: Observer<IdealShell>;
 
-    private readonly death: StateHandler<IdealShell>;
+    private readonly death: Emitter<IdealShell>;
     readonly after_animate: Observer<IdealShell>;
 
     private readonly reduction: number;
