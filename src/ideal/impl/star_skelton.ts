@@ -1,41 +1,31 @@
 import { rand_range } from "../../utils/helper";
-import { create_transmitter, Observer, Receiver, Emitter } from "../../utils/transmitter";
 
+import { create_transmitter, Observer, Emitter } from "../../utils/transmitter";
 import { PositionalRule } from "../../positional_rule/protocol/positional_rule";
+import { Skelton } from "../protocol/skelton";
 
 import { Point } from "../../positional/basic_impl/point";
 import { Vec3 } from "../../positional/basic_impl/vec3";
+import { Positional } from "../../positional/protocol/positional";
 
-import { Skelton } from "../protocol/skelton";
+const random_life = (): number => 2.5 * (rand_range(93, 101) / 100);
 
-const PI_HALF = Math.PI / 2;
-
-let [w, h] = [0, 0];
-export const on_resized: Receiver<[number, number]> = rect => [w, h] = rect;
-
-const random_position = () => Point.of(w * (rand_range(100, 900) / 1000), h, 0);
-const random_direction = () => Vec3.decompose(PI_HALF, -PI_HALF, h * (rand_range(100, 200) / 100) * 0.8);
-
-export class SkeltonLauncher implements Skelton {
-    static emerge(rule: PositionalRule): SkeltonLauncher {
-        return new SkeltonLauncher(rule);
+export class StarSkelton implements Skelton {
+    static emerge(rule: PositionalRule, scale = 1): StarSkelton {
+        return new StarSkelton(rule, scale);
     }
 
     private readonly rule: PositionalRule;
 
-    readonly color = 0xffffff;
-
-    private opacity = 0;
-    get alpha(): number {
-        return this.opacity;
-    }
-    set alpha(alpha: number) {
-        this.opacity = alpha < 0 ? 0 : alpha > 1 ? 1 : alpha;
-    }
-
     private center = Point.ZERO;
+    set initial_position(position: Positional) {
+        this.center = position;
+    }
+
     private vector = Vec3.BASIS;
-    private elapse = 0;
+    set direction(direction: Positional) {
+        this.vector = direction;
+    }
 
     get x(): number {
         return this.center.x + this.rule.x(this.vector, this.elapse);
@@ -49,6 +39,27 @@ export class SkeltonLauncher implements Skelton {
         return this.center.z + this.rule.z(this.vector, this.elapse);
     }
 
+    private elapse = 0;
+    private life = random_life();
+    get is_dead(): boolean {
+        return this.elapse > this.life;
+    }
+
+    private tint = 0xffffff;
+    get color(): number {
+        return this.tint;
+    }
+    set color(color: number) {
+        this.tint = color < 0 ? 0 : color > 0xffffff ? 0xffffff : color;
+    }
+
+    private opacity = 0;
+    get alpha(): number { return this.opacity; }
+    set alpha(alpha: number) {
+        this.opacity = alpha < 0 ? 0 : alpha > 1 ? 1 : alpha;
+        this.opacity === 0 && this.preparation.transmit(this);
+    }
+
     private readonly preparation: Emitter<Skelton>;
     readonly before_animate: Observer<Skelton>;
 
@@ -58,8 +69,11 @@ export class SkeltonLauncher implements Skelton {
     private readonly death: Emitter<Skelton>;
     readonly after_animate: Observer<Skelton>;
 
-    private constructor(rule: PositionalRule) {
+    readonly scale: number;
+
+    private constructor(rule: PositionalRule, scale = 1) {
         this.rule = rule;
+        this.scale = scale;
 
         [this.preparation, this.before_animate] = create_transmitter<Skelton>();
         [this.update, this.on_next_frame] = create_transmitter<Skelton>();
@@ -67,11 +81,11 @@ export class SkeltonLauncher implements Skelton {
     }
 
     next(delta: number): void {
-        const last_y = this.y;
+        if (this.is_dead) return;
 
         this.elapse += delta;
 
-        if (last_y < this.y) {
+        if (this.is_dead) {
             this.opacity = 0;
             this.death.transmit(this);
             return;
@@ -84,8 +98,7 @@ export class SkeltonLauncher implements Skelton {
         this.elapse = 0;
 
         this.opacity = 1;
-        this.center = random_position();
-        this.vector = random_direction();
+        this.life = random_life();
 
         this.preparation.transmit(this);
     }

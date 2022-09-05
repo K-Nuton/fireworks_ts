@@ -9,7 +9,7 @@ import { Animator } from "../../animator/protocol/animator";
 import { Point } from "../../positional/basic_impl/point";
 import { Vec3 } from "../../positional/basic_impl/vec3";
 
-import { SkeltonStar } from "../impl/skelton_star";
+import { StarSkelton } from "../impl/star_skelton";
 
 export const PARTICLE_NUM = 150;
 const RANDOM_LEVEL = 400;
@@ -25,7 +25,7 @@ export class IdealShell implements Positional, Animator<IdealShell> {
         return new IdealShell(rule, reduction);
     }
 
-    readonly stars: SkeltonStar[];
+    readonly stars: StarSkelton[];
 
     center = Point.ZERO;
 
@@ -46,7 +46,7 @@ export class IdealShell implements Positional, Animator<IdealShell> {
 
     private constructor(rule: PositionalRule, reduction = 1) {
         this.reduction = reduction;
-        this.stars = [...Array(PARTICLE_NUM)].map(() => SkeltonStar.emerge(rule, reduction));
+        this.stars = [...Array(PARTICLE_NUM)].map(() => StarSkelton.emerge(rule, reduction));
 
         [this.preparation, this.before_animate] = create_transmitter<IdealShell>();
         [this.death, this.after_animate] = create_transmitter<IdealShell>();
@@ -58,7 +58,7 @@ export class IdealShell implements Positional, Animator<IdealShell> {
 
         let i = 0, t = Math.random(), r = 0;
         let theta: number, phi: number;
-        let star: SkeltonStar;
+        let star: StarSkelton;
         while (i < PARTICLE_NUM) {
             theta = Math.acos(1 - t / PARTICLE_NUM);
             r = rand_range(RANDOM_LEVEL - 1, RANDOM_LEVEL + 2) / RANDOM_LEVEL;
