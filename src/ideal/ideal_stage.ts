@@ -2,7 +2,7 @@ import { create_transmitter, Receiver } from "../utils/transmitter";
 import { delayed_cache } from "../utils/helper";
 
 import { on_resized as resize_newton, Newton } from "../positional_rule/impl/newton";
-import { on_resized as resize_launcher } from "./impl/skelton_launcher";
+import { on_resized as resize_launcher } from "./impl/launcher_skelton";
 import { on_resized as resize_shell } from "./composition/ideal_shell";
 
 import { IdealFirework } from "./composition/ideal_firework";

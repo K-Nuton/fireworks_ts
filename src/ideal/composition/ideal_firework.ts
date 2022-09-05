@@ -5,13 +5,13 @@ import { PositionalRule } from "../../positional_rule/protocol/positional_rule";
 import { Animator } from "../../animator/protocol/animator";
 import { Skelton } from "../protocol/skelton";
 
-import { SkeltonLauncher } from "../impl/skelton_launcher";
+import { LauncherSkelton } from "../impl/launcher_skelton";
 import { IdealShell } from "./ideal_shell";
 
 const sleep_time_ms = (): number => rand_range(0, 5000);
 
 export class IdealFirework implements Animator<IdealFirework> {
-    private readonly launcher: SkeltonLauncher;
+    private readonly launcher: LauncherSkelton;
     private readonly shell: IdealShell;
     private readonly sub_shell: IdealShell;
 
@@ -22,7 +22,7 @@ export class IdealFirework implements Animator<IdealFirework> {
     readonly skeltons: Skelton[];
 
     constructor(rule: PositionalRule) {
-        this.launcher = SkeltonLauncher.emerge(rule);
+        this.launcher = LauncherSkelton.emerge(rule);
         this.shell = IdealShell.emerge(rule);
         this.sub_shell = IdealShell.emerge(rule, 0.7);
 
@@ -49,7 +49,7 @@ export class IdealFirework implements Animator<IdealFirework> {
         this.reset();
     }
 
-    private after_launcher_animate(launcher: SkeltonLauncher) {
+    private after_launcher_animate(launcher: LauncherSkelton) {
         this.shell.center = launcher;
         this.sub_shell.center = launcher;
 
