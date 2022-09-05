@@ -1,5 +1,5 @@
 import { rand_range } from "../../utils/helper";
-import { create_transmitter, Observer, Receiver, StateHandler } from "../../utils/transmitter";
+import { create_transmitter, Observer, Receiver, Emitter } from "../../utils/transmitter";
 
 import { PositionalRule } from "../../positional_rule/protocol/positional_rule";
 
@@ -29,13 +29,13 @@ export class SkeltonLauncher extends Molecule implements Skelton {
     get alpha(): number { return this._alpha; }
     set alpha(alpha: number) { this._alpha = alpha < 0 ? 0 : alpha > 1 ? 1 : alpha; }
 
-    private readonly preparation: StateHandler<SkeltonLauncher>;
+    private readonly preparation: Emitter<SkeltonLauncher>;
     readonly before_animate: Observer<SkeltonLauncher>;
 
-    private readonly update: StateHandler<SkeltonLauncher>;
+    private readonly update: Emitter<SkeltonLauncher>;
     readonly on_next_frame: Observer<SkeltonLauncher>;
 
-    private readonly death: StateHandler<SkeltonLauncher>;
+    private readonly death: Emitter<SkeltonLauncher>;
     readonly after_animate: Observer<SkeltonLauncher>;
 
     private constructor(rule: PositionalRule) {
