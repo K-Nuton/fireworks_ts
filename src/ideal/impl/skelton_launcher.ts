@@ -8,8 +8,6 @@ import { Vec3 } from "../../positional/basic_impl/vec3";
 
 import { Skelton } from "../protocol/skelton";
 
-import { Molecule } from "../../molecule/molecule";
-
 const PI_HALF = Math.PI / 2;
 
 let [w, h] = [0, 0];
@@ -18,40 +16,63 @@ export const on_resized: Receiver<[number, number]> = rect => [w, h] = rect;
 const random_position = () => Point.of(w * (rand_range(100, 900) / 1000), h, 0);
 const random_direction = () => Vec3.decompose(PI_HALF, -PI_HALF, h * (rand_range(100, 200) / 100) * 0.8);
 
-export class SkeltonLauncher extends Molecule implements Skelton {
+export class SkeltonLauncher implements Skelton {
     static emerge(rule: PositionalRule): SkeltonLauncher {
         return new SkeltonLauncher(rule);
     }
 
+    private readonly rule: PositionalRule;
+
     readonly color = 0xffffff;
 
-    private _alpha = 0;
-    get alpha(): number { return this._alpha; }
-    set alpha(alpha: number) { this._alpha = alpha < 0 ? 0 : alpha > 1 ? 1 : alpha; }
+    private opacity = 0;
+    get alpha(): number {
+        return this.opacity;
+    }
+    set alpha(alpha: number) {
+        this.opacity = alpha < 0 ? 0 : alpha > 1 ? 1 : alpha;
+    }
 
-    private readonly preparation: Emitter<SkeltonLauncher>;
-    readonly before_animate: Observer<SkeltonLauncher>;
+    private center = Point.ZERO;
+    private vector = Vec3.BASIS;
+    private elapse = 0;
 
-    private readonly update: Emitter<SkeltonLauncher>;
-    readonly on_next_frame: Observer<SkeltonLauncher>;
+    get x(): number {
+        return this.center.x + this.rule.x(this.vector, this.elapse);
+    }
 
-    private readonly death: Emitter<SkeltonLauncher>;
-    readonly after_animate: Observer<SkeltonLauncher>;
+    get y(): number {
+        return this.center.y + this.rule.y(this.vector, this.elapse);
+    }
+
+    get z(): number {
+        return this.center.z + this.rule.z(this.vector, this.elapse);
+    }
+
+    private readonly preparation: Emitter<Skelton>;
+    readonly before_animate: Observer<Skelton>;
+
+    private readonly update: Emitter<Skelton>;
+    readonly on_next_frame: Observer<Skelton>;
+
+    private readonly death: Emitter<Skelton>;
+    readonly after_animate: Observer<Skelton>;
 
     private constructor(rule: PositionalRule) {
-        super(rule);
+        this.rule = rule;
 
-        [this.preparation, this.before_animate] = create_transmitter<SkeltonLauncher>();
-        [this.update, this.on_next_frame] = create_transmitter<SkeltonLauncher>();
-        [this.death, this.after_animate] = create_transmitter<SkeltonLauncher>();
+        [this.preparation, this.before_animate] = create_transmitter<Skelton>();
+        [this.update, this.on_next_frame] = create_transmitter<Skelton>();
+        [this.death, this.after_animate] = create_transmitter<Skelton>();
     }
 
     next(delta: number): void {
         const last_y = this.y;
-        super.next(delta);
+
+        this.elapse += delta;
 
         if (last_y < this.y) {
-            this._alpha = 0;
+            this.opacity = 0;
             this.death.transmit(this);
             return;
         }
@@ -60,11 +81,11 @@ export class SkeltonLauncher extends Molecule implements Skelton {
     }
 
     reset(): void {
-        super.reset();
+        this.elapse = 0;
 
-        this._alpha = 1;
-        this.initial_position = random_position();
-        this.direction = random_direction();
+        this.opacity = 1;
+        this.center = random_position();
+        this.vector = random_direction();
 
         this.preparation.transmit(this);
     }

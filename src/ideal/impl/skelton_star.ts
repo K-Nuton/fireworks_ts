@@ -4,57 +4,89 @@ import { create_transmitter, Observer, Emitter } from "../../utils/transmitter";
 import { PositionalRule } from "../../positional_rule/protocol/positional_rule";
 import { Skelton } from "../protocol/skelton";
 
-import { Molecule } from "../../molecule/molecule";
+import { Point } from "../../positional/basic_impl/point";
+import { Vec3 } from "../../positional/basic_impl/vec3";
+import { Positional } from "../../positional/protocol/positional";
 
 const random_life = (): number => 2.5 * (rand_range(93, 101) / 100);
 
-export class SkeltonStar extends Molecule implements Skelton {
+export class SkeltonStar implements Skelton {
     static emerge(rule: PositionalRule, scale = 1): SkeltonStar {
         return new SkeltonStar(rule, scale);
     }
 
-    private life = random_life();
+    private readonly rule: PositionalRule;
 
-    private _color = 0xffffff;
-    get color(): number { return this._color; }
-    set color(color: number) { this._color = color < 0 ? 0 : color > 0xffffff ? 0xffffff : color; }
-
-    private _alpha = 0;
-    get alpha(): number { return this._alpha; }
-    set alpha(alpha: number) { 
-        this._alpha = alpha < 0 ? 0 : alpha > 1 ? 1 : alpha;
-        this._alpha === 0 && this.preparation.transmit(this);
+    private center = Point.ZERO;
+    set initial_position(position: Positional) {
+        this.center = position;
     }
 
-    get is_dead(): boolean { return this.elapse > this.life; }
+    private vector = Vec3.BASIS;
+    set direction(direction: Positional) {
+        this.vector = direction;
+    }
 
-    private readonly preparation: Emitter<SkeltonStar>;
-    readonly before_animate: Observer<SkeltonStar>;
+    get x(): number {
+        return this.center.x + this.rule.x(this.vector, this.elapse);
+    }
 
-    private readonly update: Emitter<SkeltonStar>;
-    readonly on_next_frame: Observer<SkeltonStar>;
+    get y(): number {
+        return this.center.y + this.rule.y(this.vector, this.elapse);
+    }
 
-    private readonly death: Emitter<SkeltonStar>;
-    readonly after_animate: Observer<SkeltonStar>;
+    get z(): number {
+        return this.center.z + this.rule.z(this.vector, this.elapse);
+    }
+
+    private elapse = 0;
+    private life = random_life();
+    get is_dead(): boolean {
+        return this.elapse > this.life;
+    }
+
+    private tint = 0xffffff;
+    get color(): number {
+        return this.tint;
+    }
+    set color(color: number) {
+        this.tint = color < 0 ? 0 : color > 0xffffff ? 0xffffff : color;
+    }
+
+    private opacity = 0;
+    get alpha(): number { return this.opacity; }
+    set alpha(alpha: number) {
+        this.opacity = alpha < 0 ? 0 : alpha > 1 ? 1 : alpha;
+        this.opacity === 0 && this.preparation.transmit(this);
+    }
+
+    private readonly preparation: Emitter<Skelton>;
+    readonly before_animate: Observer<Skelton>;
+
+    private readonly update: Emitter<Skelton>;
+    readonly on_next_frame: Observer<Skelton>;
+
+    private readonly death: Emitter<Skelton>;
+    readonly after_animate: Observer<Skelton>;
 
     readonly scale: number;
 
     private constructor(rule: PositionalRule, scale = 1) {
-        super(rule);
+        this.rule = rule;
         this.scale = scale;
 
-        [this.preparation, this.before_animate] = create_transmitter<SkeltonStar>();
-        [this.update, this.on_next_frame] = create_transmitter<SkeltonStar>();
-        [this.death, this.after_animate] = create_transmitter<SkeltonStar>();
+        [this.preparation, this.before_animate] = create_transmitter<Skelton>();
+        [this.update, this.on_next_frame] = create_transmitter<Skelton>();
+        [this.death, this.after_animate] = create_transmitter<Skelton>();
     }
 
     next(delta: number): void {
         if (this.is_dead) return;
 
-        super.next(delta);
+        this.elapse += delta;
 
         if (this.is_dead) {
-            this._alpha = 0;
+            this.opacity = 0;
             this.death.transmit(this);
             return;
         }
@@ -63,9 +95,9 @@ export class SkeltonStar extends Molecule implements Skelton {
     }
 
     reset(): void {
-        super.reset();
+        this.elapse = 0;
 
-        this._alpha = 1;
+        this.opacity = 1;
         this.life = random_life();
 
         this.preparation.transmit(this);
