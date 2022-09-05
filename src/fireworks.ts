@@ -1,4 +1,4 @@
-import { ParticleContainer } from "pixi.js";
+import { ParticleContainer } from "../src/pixi/pixi";
 
 import { create_transmitter } from "./utils/transmitter";
 import { delayed_cache } from "./utils/helper";
