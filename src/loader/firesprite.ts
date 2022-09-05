@@ -1,4 +1,4 @@
-import { Graphics, Sprite } from "pixi.js";
+import { Graphics, Sprite } from "../pixi/pixi";
 
 import { delayed_cache } from "../utils/helper";
 import { create_transmitter, Receiver } from "../utils/transmitter";
